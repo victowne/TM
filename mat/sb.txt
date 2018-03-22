@@ -1,0 +1,13 @@
+
+93,102,255
+
+
+imread('colorRead.jpg');   % 得到了一个23*189*3的矩阵，其中23是colorbar的宽（高），189是长，3是RGB的维数
+color=ans(11,:,:);    %  得到中间一条的颜色信息（即colorbar中间部分)
+colorfinal=reshape(color,189,3);   %  最后得到中间一条每个点的RGB
+将colorbar保存以后使用
+colorstyle=double(colorfinal)/255;  %  需要转化成双精度，0-1之间的数值
+
+flipud
+
+http://www.labri.fr/perso/nrougier/teaching/matplotlib/

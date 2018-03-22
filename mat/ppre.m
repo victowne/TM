@@ -1,0 +1,26 @@
+A=load('./xy1550.dat');
+p=load('./Profile0.dat');
+r=p(:,1);                                       
+r=r';
+eq=p(:,11);                                      
+a=A(:,11);
+b=A(:,12);                                        
+a=reshape(a,500,4);               
+b=reshape(b,500,4);                            
+a=a+1i*b;                     
+n=0:3;                                          
+k=2*n;                                          
+k=k';
+theta=0:0.01:2.005*pi;                             
+b=2*exp(1i*k*theta);
+b(1,:)=b(1,:)/2;
+PRE=a*b;                      
+PRE=real(PRE);
+PRE0=eq';                                        
+PRE0=PRE0';
+PRE0=repmat(PRE0,1,630);      
+PRE=PRE+PRE0;
+%r=r(:,150:300);PRE=PRE(150:300,:);             
+[tt, rr] = meshgrid(theta, r);
+[x, y] = pol2cart(tt, rr);
+contourf(y,x,PRE,50,'linecolor','none')
