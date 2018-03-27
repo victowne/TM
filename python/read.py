@@ -178,3 +178,143 @@ f['time_node_data[0]/node_data[12]/values'] = val
 del f['time_node_data[0]/node_data[13]/values']
 f['time_node_data[0]/node_data[13]/values'] = val
 f.close()
+
+
+
+#custom1
+val = funcpsi(zbt[:,0],zbt[:,1],grid=False)
+val[0] = 1
+n = 1
+for k in np.arange(1,5):
+    for i in np.arange(2,102):
+        for j in np.arange(1,i):
+            val[n] = i
+            n += 1
+for i in np.arange(1,5):
+    val = np.hstack((val,val))
+val.shape = (len(val),1)
+
+#custom2
+val = np.ones(323216)
+n = 0
+for k in np.arange(1,17):
+    val[n] = corp[0]
+    n += 1
+    to = 0.125*np.pi*(k-1)
+    for i in np.arange(2,102):
+        for j in np.arange(1,i):
+            po = np.pi*j/(2*i)
+            val[n] = corp[i-1]*np.cos(2*po+1*to)
+            n += 1
+   
+    for i in np.arange(2,102):
+        for j in np.arange(1,i):
+            po = np.pi*j/(2*i)+.5*np.pi
+            val[n] = corp[i-1]*np.cos(2*po+1*to)
+            n += 1
+  
+    for i in np.arange(2,102):
+        for j in np.arange(1,i):
+            po = np.pi*j/(2*i)+np.pi
+            val[n] = corp[i-1]*np.cos(2*po+1*to)
+            n += 1
+
+    for i in np.arange(2,102):
+        for j in np.arange(1,i):
+            po = np.pi*j/(2*i)+1.5*np.pi
+            val[n] = corp[i-1]*np.cos(2*po+1*to)
+            n += 1
+    
+val.shape = (len(val),1)
+
+#costom3
+val[0] = 1
+n = 1
+for k in np.arange(1,5):
+    for i in np.arange(2,102):
+        if (i == 50 or i ==10): 
+            for j in np.arange(1,i):
+                val[n] = i
+                n += 1
+        else:
+             for j in np.arange(1,i):
+                val[n] = 0
+                n += 1   
+for i in np.arange(1,5):
+    val = np.hstack((val,val))
+val.shape = (len(val),1)
+
+
+
+
+
+val = np.ones(323216)
+n = 0
+for k in np.arange(1,17):
+    val[n] = 0*corp[0]
+    n += 1
+    to = 0.125*np.pi*(k-1)
+    for i in np.arange(2,102):
+        if i == 55:
+            for j in np.arange(1,i):
+                po = np.pi*j/(2*i)
+                val[n] = corp[i-1]*np.cos(3*po+2*to)
+                n += 1
+        elif i == 71:
+            for j in np.arange(1,i):
+                po = np.pi*j/(2*i)
+                val[n] = corp[i-1]*np.cos(2*po+1*to)
+                n += 1
+        else:
+            for j in np.arange(1,i):
+             
+                val[n] = 0
+                n += 1          
+    for i in np.arange(2,102):
+        if i == 55:
+            for j in np.arange(1,i):
+                po = np.pi*j/(2*i) + .5*np.pi
+                val[n] = corp[i-1]*np.cos(3*po+2*to)
+                n += 1
+        elif i == 71:
+            for j in np.arange(1,i):
+                po = np.pi*j/(2*i) + .5*np.pi
+                val[n] = corp[i-1]*np.cos(2*po+1*to)
+                n += 1
+        else:
+            for j in np.arange(1,i):
+             
+                val[n] = 0
+                n += 1        
+    for i in np.arange(2,102):
+        if i == 55:
+            for j in np.arange(1,i):
+                po = np.pi*j/(2*i) + 1*np.pi
+                val[n] = corp[i-1]*np.cos(3*po+2*to)
+                n += 1
+        elif i == 71:
+            for j in np.arange(1,i):
+                po = np.pi*j/(2*i) + 1*np.pi
+                val[n] = corp[i-1]*np.cos(2*po+1*to)
+                n += 1
+        else:
+            for j in np.arange(1,i):
+             
+                val[n] = 0
+                n += 1        
+    for i in np.arange(2,102):
+        if i == 55:
+            for j in np.arange(1,i):
+                po = np.pi*j/(2*i) + 1.5*np.pi
+                val[n] = corp[i-1]*np.cos(3*po+2*to)
+                n += 1
+        elif i == 71:
+            for j in np.arange(1,i):
+                po = np.pi*j/(2*i) + 1.5*np.pi
+                val[n] = corp[i-1]*np.cos(2*po+1*to)
+                n += 1
+        else:
+            for j in np.arange(1,i):
+             
+                val[n] = 0
+                n += 1        
