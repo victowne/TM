@@ -1,17 +1,17 @@
             
 Module variable
 
-	implicit none
-	
-	! grid parameters
-	integer, parameter :: ni=801                      ! nx, x grid number
-	integer, parameter :: nj=201                      ! ny, y grid number
-	integer, parameter :: nt=25000000
+        implicit none
+        
+        ! grid parameters
+        integer, parameter :: ni=801                      ! nx, x grid number
+        integer, parameter :: nj=201                      ! ny, y grid number
+        integer, parameter :: nt=25000000
 	real*8, parameter :: dx=0.005, dy=0.02
 	real*8 :: dt=0.002    ! giving a dt < min(dx,dz)/[sqrt(1.0+0.5*gamma*beta)*va]
 	real*8 :: dx2=0.5/dx, dy2=0.5/dy, ddx=1.0/(dx*dx), ddy=1.0/(dy*dy)
 	real*8 :: tt 
-	! physical parameters
+        ! physical parameters
 	real*8, parameter :: gamma=1.66667              ! parameters in mhd equations
 	real*8, parameter :: eta=0.00005
 	real*8, parameter :: vis=0.0001
@@ -28,14 +28,14 @@ Module variable
 	real*8 :: t0                                 ! t0 -- temperature T0 in x=Lx
 	real*8 :: bxm                                           ! bxm -- log(max(Bx))
 	real*8 :: em, ek, eh, et
-	
-	! other parameters
-	integer, parameter :: nplot1=50000, nplot2=500, nplot3=500000
+        
+        ! other parameters
+        integer, parameter :: nplot1=50000, nplot2=500, nplot3=500000
 	real*8, parameter :: pi=3.14159265358979, small=1.0e-10, large=1.0e10
 	real*8, parameter :: cfl=1.5! Courant�CFriedrichs�CLewy condition parameter
 	real*8, parameter :: am=0.0001, mm=0.5                    ! am -- prtb amplitude
 	real*8, parameter :: abd=1.0                ! abd -- perturbation width in x
-	integer ::  kw=0                     ! kw -- warning, =0 normal, =1 divergent
+        integer ::  kw=0                     ! kw -- warning, =0 normal, =1 divergent
 
 	real*8, dimension(ni,nj,7) :: x    ! 1 2 3 4 5 6 7 --> rho p ux uy uy psi bz
 	real*8, dimension(ni,nj,7) :: y, f1, f2, f3, f4         ! temp arrays for rk4
@@ -46,113 +46,113 @@ Module variable
 	real*8, dimension(ni,nj) ::psi                          !for psimax and width
 	real*8 :: psimax,psimin,width
 	real*8 :: fp, fmx, fmy, fmz
-	integer :: psixmax,psiymax 
+        integer :: psixmax,psiymax 
 	real*8 jmin
 	real*8, dimension(ni,nj) ::vor                         !vorticiy
 	real*8, dimension(ni,nj) ::seed
 	real*8, dimension(ni,nj) ::fvx, fvy, fvz, fjbx, fjby, fjbz, fh
     
-	!forced cancel
+        !forced cancel
 	real*8 :: ta, tau, tt0, ttrmp
 	real*8, parameter :: numta=200, numta1=1000, numta2=800
 	real*8, parameter :: psip=0.1, pper=0., pp0=0.02, f0=0.
 
-	!neoclassical current
+        !neoclassical current
 	real*8, parameter :: jbs=0.08
 
-	!shear flow
+        !shear flow
 	real*8, dimension(ni) :: vxs, vys, vzs                                   
 	real*8, parameter :: vx0=0.0, vy0=0.07, vz0=0.0      
 	real*8, parameter :: lv=0.8
 
-	!rmp
+        !rmp
 	real*8, parameter :: widthon=9000                                  !start rmp
 	real*8, parameter :: psiper=0.3                        
 	real*8 :: phi=1.0*pi                                    !the phase diffrence
 
 
-	!eccd
+        !eccd
 	real*8, parameter :: eccdon=19500 
 	real*8, parameter :: ejz=0.0, delta=0.6
 	real*8 :: delta2=delta**2
  
-	integer, parameter :: numthreads=24
-	
+        integer, parameter :: numthreads=24
+        
 end Module variable
 
 !********************************************************************************
 Program mhd2d
-	USE omp_lib
-	use variable
-	implicit none
-	integer cause,it,i,j,ttt
-	INTEGER(4) :: time_begin, time_end, time_rate
+        USE omp_lib
+        use variable
+        implicit none
+        integer cause,it,i,j,ttt
+        INTEGER(4) :: time_begin, time_end, time_rate
 	real*8 t
-	
-	open(15,file='BXM.TXT',status='replace')
-	open(14,file='EQUILIBRIUM.TXT',status='replace')
-	open(13,file='INPSI.TXT',status='replace')
-	open(12,file='BPSIM.TXT',status='replace')
-	open(11,file='BWIDTH.TXT',status='replace')
-	open(10,file='ENERGY.TXT',status='replace')
-	open(9,file='JMIN.TXT',status='replace')
-	open(8,file='BVELOCITY.TXT',status='replace')
-	open(7,file='BFORCE.TXT',status='replace')
-	open(70,file='BRATE.TXT',status='replace')
+        
+        open(15,file='BXM.TXT',status='replace')
+        open(14,file='EQUILIBRIUM.TXT',status='replace')
+        open(13,file='INPSI.TXT',status='replace')
+        open(12,file='BPSIM.TXT',status='replace')
+        open(11,file='BWIDTH.TXT',status='replace')
+        open(10,file='ENERGY.TXT',status='replace')
+        open(9,file='JMIN.TXT',status='replace')
+        open(8,file='BVELOCITY.TXT',status='replace')
+        open(7,file='BFORCE.TXT',status='replace')
+        open(70,file='BRATE.TXT',status='replace')
 
-	call initial
-	do i=1,ni
-		write(14,'(6ES18.8)') psie(i), bye(i), pe(i), bze(i), rhoe(i), jze(i)
-	end do
-	write(13,'(801ES18.8)') ((seed(i,j),i=1,ni),j=1,nj)	
+        call initial
+        do i=1,ni
+                write(14,'(6ES18.8)') psie(i), bye(i), pe(i), bze(i), rhoe(i), jze(i)
+        end do
+        write(13,'(801ES18.8)') ((seed(i,j),i=1,ni),j=1,nj)
 
-	!main loop
-	call system_clock(time_begin,time_rate) 
-	ttt=0
-	do it=1,nt
-	! write(*,*)it
-	tt=dt*it
+        !main loop
+        call system_clock(time_begin,time_rate) 
+        ttt=0
+        do it=1,nt
+        ! write(*,*)it
+        tt=dt*it
 
-		if(mod(it,nplot1)==0) then
-		ttt=ttt+1
-			call plot1(ttt)
-			! call plot2(ttt)
-		endif
-		
-		if(mod(it,nplot3)==0) then
-		ttt=ttt+1
-			call plot2(ttt)
-		endif
+                if(mod(it,nplot1)==0) then
+                ttt=ttt+1
+                        call plot1(ttt)
+                        ! call plot2(ttt)
+                endif
+                
+                if(mod(it,nplot3)==0) then
+                ttt=ttt+1
+                        call plot2(ttt)
+                endif
 
-		if(mod(it-1,nplot2)==0) then
-			! call bxmax
-			! write(15,'(F10.4,ES18.8)') tt, log(bxm)
+                if(mod(it-1,nplot2)==0) then
+                        ! call bxmax
+                        ! write(15,'(F10.4,ES18.8)') tt, log(bxm)
 
-			call psimaxwidth
-			write(11,'(F10.4,ES18.8)') tt, width*dx
-			write(8,'(F10.4,2I6)') tt, psixmax, psiymax
-			write(70,'(F10.4,ES18.8)') tt, psimin
+                        call psimaxwidth
+                        write(11,'(F10.4,ES18.8)') tt, width*dx
+                        write(8,'(F10.4,2I6)') tt, psixmax, psiymax
+                        write(70,'(F10.4,ES18.8)') tt, psimin
 
-			! call calcenergy(x)
-			! write(10,'(F10.4,4ES18.8)') tt, em, ek, eh, et
+                        ! call calcenergy(x)
+                        ! write(10,'(F10.4,4ES18.8)') tt, em, ek, eh, et
 
-			call calcj(x)
-			write(12,'(F10.4,ES18.8)') tt, psimin
-			write(9,'(F10.4,ES18.8)') tt, eta*jmin
+                        call calcj(x)
+                        write(12,'(F10.4,ES18.8)') tt, psimin
+                        write(9,'(F10.4,ES18.8)') tt, eta*jmin
 
-			call calcf(x)
-			write(7,'(F10.4,4ES18.8)') tt,fp,fmx,fmy,fmz
-		end if
+                        call calcf(x)
+                        write(7,'(F10.4,4ES18.8)') tt,fp,fmx,fmy,fmz
+                end if
 
-		t=t+dt
-		call rk4
+                t=t+dt
+                call rk4
 
-		do i=1,ni
-			do j=1,nj
-				cause=1
-				if(x(i,j,1)<0)	exit
+                do i=1,ni
+                        do j=1,nj
+                                cause=1
+                                if(x(i,j,1)<0) exit
 				cause=2
-				if(x(i,j,2)<0)	exit
+				if(x(i,j,2)<0) exit
 			enddo
 		enddo
 		cause=3

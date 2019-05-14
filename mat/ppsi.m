@@ -20,12 +20,12 @@ b=2*exp(1i*k*theta);
 b(1,:)=b(1,:)/2;
 PSI=a*b;                      
 PSI=real(PSI);
-PSI0=eq'+0.25*r.*r./3;                            %平衡量
+PSI0=0.8*eq'+0.25*r.*r./4;                            %平衡量
 PSI0=PSI0';
 PSI0=repmat(PSI0,1,630);      
 PSI=PSI+PSI0;
 % r=r(:,1:270);PSI=PSI(1:270,:);             %截取范围
 [tt, rr] = meshgrid(theta, r);
 [x, y] = pol2cart(tt, rr);
-% contourf(y,x,PSI0,50,'linecolor','none')
-contourf(tt,rr,PSI0,50,'linecolor','none')
+contourf(y,x,PSI,50,'linecolor','none')
+% contourf(tt,rr,PSI,50,'linecolor','none')
