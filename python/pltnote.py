@@ -47,6 +47,8 @@ ax2.legend(loc='best')
 # ax1.set_xticks((1,10,15))
 # ax1.set_xticklabels(('a','b','c'),fontsize=15)
 # plt.autoscale(tight=True)
+# 设置坐标刻度值的大小以及刻度值的字体
+plt.tick_params(labelsize=23)
 ax2.spines['left'].set_color('red')
 ax1.spines['bottom'].set_linewidth(2)
 ax1.spines['top'].set_linewidth(2)
