@@ -1,0 +1,22 @@
+#PBS -S /bin/bash
+#PBS -N 94
+#PBS -l nodes=compute-0-54:ppn=24
+#PBS -q IB3
+#PBS -m b
+#PBS -m e
+#PBS -m a
+#PBS -o outfile
+#PBS -e errfile
+#PBS -l walltime=200:00:00
+
+echo " Begin time :"; date
+echo " Job run on :"; hostname
+echo " With job id:" 
+echo $PBS_JOBID
+
+##do your jobp
+cd $PBS_O_WORKDIR
+export OMP_NUM_THREADS=24
+./main
+
+echo " End time :"; date
