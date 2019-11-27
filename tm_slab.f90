@@ -1,231 +1,85 @@
-            
-Module variable
-
-        implicit none
-        
-        ! grid parameters
-        integer, parameter :: ni=801                      ! nx, x grid number
-        integer, parameter :: nj=201                      ! ny, y grid number
-        integer, parameter :: nt=25000000
-        real*8, parameter :: dx=0.005, dy=0.02
-        real*8 :: dt=0.002    ! giving a dt < min(dx,dz)/[sqrt(1.0+0.5*gamma*beta)*va]
-        real*8 :: dx2=0.5/dx, dy2=0.5/dy, ddx=1.0/(dx*dx), ddy=1.0/(dy*dy)
-        real*8 :: tt 
-        ! physical parameters
-        real*8, parameter :: gamma=1.66667              ! parameters in mhd equations
-        real*8, parameter :: eta=0.00005
-        real*8, parameter :: vis=0.0001
-        real*8, parameter :: dp=0.0001
-        real*8, parameter :: drho=0.0001
-        real*8, parameter :: beta=0.5                                  ! beta in x=Lx
-        real*8, parameter :: rho0=1.0             ! rho0 -- mass density rho0 in x=Lx
-        real*8, parameter :: b0=1.0                                        ! b0 -- B0
-        real*8, parameter :: bze0=3.0                                      ! bze0 
-        real*8, parameter :: bl=0.8                    ! bl -- width of current sheet
-        real*8, parameter :: pl=0.6                 ! bl -- width of initial pressure
-        real*8 :: va                                                ! Alfven velocity
-        real*8 :: p0                                      ! p0 -- pressure p0 in x=Lx
-        real*8 :: t0                                 ! t0 -- temperature T0 in x=Lx
-        real*8 :: bxm                                           ! bxm -- log(max(Bx))
-        real*8 :: em, ek, eh, et
-        
-        ! other parameters
-        integer, parameter :: nplot1=50000, nplot2=500, nplot3=500000
-        real*8, parameter :: pi=3.14159265358979, small=1.0e-10, large=1.0e10
-        real*8, parameter :: cfl=1.5! Courant�CFriedrichs�CLewy condition parameter
-        real*8, parameter :: am=0.0001, mm=0.5                    ! am -- prtb amplitude
-        real*8, parameter :: abd=1.0                ! abd -- perturbation width in x
-        integer ::  kw=0                     ! kw -- warning, =0 normal, =1 divergent
-
-        real*8, dimension(ni,nj,7) :: x    ! 1 2 3 4 5 6 7 --> rho p ux uy uy psi bz
-        real*8, dimension(ni,nj,7) :: y, f1, f2, f3, f4         ! temp arrays for rk4
-        real*8, dimension(ni,nj) :: bx, by, pt, jb                           ! pt=p+b^2/2
-        real*8, dimension(ni,nj) :: jx, jy, jz
-        real*8, dimension(ni) :: psie, bye, pe, bze, rhoe, jze                !equilibrium
-
-        real*8, dimension(ni,nj) ::psi                          !for psimax and width
-        real*8 :: psimax,psimin,width
-        real*8 :: fp, fmx, fmy, fmz
-        integer :: psixmax,psiymax 
-        real*8 jmin
-        real*8, dimension(ni,nj) ::vor                         !vorticiy
-        real*8, dimension(ni,nj) ::seed
-        real*8, dimension(ni,nj) ::fvx, fvy, fvz, fjbx, fjby, fjbz, fh
-    
-        !forced cancel
-        real*8 :: ta, tau, tt0, ttrmp
-        real*8, parameter :: numta=200, numta1=1000, numta2=800
-        real*8, parameter :: psip=0.1, pper=0., pp0=0.02, f0=0.
-
-        !neoclassical current
-        real*8, parameter :: jbs=0.08
-
-        !shear flow
-        real*8, dimension(ni) :: vxs, vys, vzs                                   
-        real*8, parameter :: vx0=0.0, vy0=0.07, vz0=0.0      
-        real*8, parameter :: lv=0.8
-
-        !rmp
-        real*8, parameter :: widthon=9000                                  !start rmp
-        real*8, parameter :: psiper=0.3                        
-        real*8 :: phi=1.0*pi                                    !the phase diffrence
-
-
-        !eccd
-        real*8, parameter :: eccdon=19500 
-        real*8, parameter :: ejz=0.0, delta=0.6
-        real*8 :: delta2=delta**2
- 
-        integer, parameter :: numthreads=24
-        
-end Module variable
-
-!********************************************************************************
 Program mhd2d
-        USE omp_lib
-        use variable
-        implicit none
-        integer cause,it,i,j,ttt
-        INTEGER(4) :: time_begin, time_end, time_rate
-        real*8 t
-        
-        open(15,file='BXM.TXT',status='replace')
-        open(14,file='EQUILIBRIUM.TXT',status='replace')
-        open(13,file='INPSI.TXT',status='replace')
-        open(12,file='BPSIM.TXT',status='replace')
-        open(11,file='BWIDTH.TXT',status='replace')
-        open(10,file='ENERGY.TXT',status='replace')
-        open(9,file='JMIN.TXT',status='replace')
-        open(8,file='BVELOCITY.TXT',status='replace')
-        open(7,file='BFORCE.TXT',status='replace')
-        open(70,file='BRATE.TXT',status='replace')
+    USE omp_lib
+    use variable
+    implicit none
+    integer cause,it,i,j,ttt
+    real*8 t
+    
+    open(15,file='BXM.TXT',status='replace')
+    open(14,file='EQUILIBRIUM.TXT',status='replace')
+    open(13,file='INPSI.TXT',status='replace')
+    open(12,file='BPSIM.TXT',status='replace')
+    open(11,file='BWIDTH.TXT',status='replace')
+    open(10,file='ENERGY.TXT',status='replace')
+    open(9,file='JMIN.TXT',status='replace')
+    open(8,file='BVELOCITY.TXT',status='replace')
+    open(7,file='BFORCE.TXT',status='replace')
+    open(70,file='BRATE.TXT',status='replace')
 
-        call initial
-        do i=1,ni
-                write(14,'(6ES18.8)') psie(i), bye(i), pe(i), bze(i), rhoe(i), jze(i)
-        end do
-        write(13,'(801ES18.8)') ((seed(i,j),i=1,ni),j=1,nj)
+    call initial
+    do i=1,ni
+        write(14,'(6ES18.8)') psie(i), bye(i), pe(i), bze(i), rhoe(i), jze(i)
+    end do
+    write(13,'(801ES18.8)') ((seed(i,j),i=1,ni),j=1,nj)
 
-        !main loop
-        call system_clock(time_begin,time_rate) 
-        ttt=0
-        do it=1,nt
+    !main loop
+    ttt=0
+    do it=1,nt
         ! write(*,*)it
         tt=dt*it
 
-                if(mod(it,nplot1)==0) then
-                ttt=ttt+1
-                        call plot1(ttt)
-                        ! call plot2(ttt)
-                endif
-                
-                if(mod(it,nplot3)==0) then
-                ttt=ttt+1
-                        call plot2(ttt)
-                endif
+        if(mod(it,nplot1)==0) then
+        ttt=ttt+1
+            call plot1(ttt)
+            ! call plot2(ttt)
+        endif
+        
+        if(mod(it,nplot3)==0) then
+        ttt=ttt+1
+            call plot2(ttt)
+        endif
 
-                if(mod(it-1,nplot2)==0) then
-                        ! call bxmax
-                        ! write(15,'(F10.4,ES18.8)') tt, log(bxm)
+        if(mod(it-1,nplot2)==0) then
+            ! call bxmax
+            ! write(15,'(F10.4,ES18.8)') tt, log(bxm)
 
-                        call psimaxwidth
-                        write(11,'(F10.4,ES18.8)') tt, width*dx
-                        write(8,'(F10.4,2I6)') tt, psixmax, psiymax
-                        write(70,'(F10.4,ES18.8)') tt, psimin
+            call psimaxwidth
+            write(11,'(F10.4,ES18.8)') tt, width*dx
+            write(8,'(F10.4,2I6)') tt, psixmax, psiymax
+            write(70,'(F10.4,ES18.8)') tt, psimin
 
-                        ! call calcenergy(x)
-                        ! write(10,'(F10.4,4ES18.8)') tt, em, ek, eh, et
+            ! call calcenergy(x)
+            ! write(10,'(F10.4,4ES18.8)') tt, em, ek, eh, et
 
-                        call calcj(x)
-                        write(12,'(F10.4,ES18.8)') tt, psimin
-                        write(9,'(F10.4,ES18.8)') tt, eta*jmin
+            call calcj(x)
+            write(12,'(F10.4,ES18.8)') tt, psimin
+            write(9,'(F10.4,ES18.8)') tt, eta*jmin
 
-                        call calcf(x)
-                        write(7,'(F10.4,4ES18.8)') tt,fp,fmx,fmy,fmz
-                end if
+            call calcf(x)
+            write(7,'(F10.4,4ES18.8)') tt,fp,fmx,fmy,fmz
+        end if
 
-                t=t+dt
-                call rk4
+        t=t+dt
+        call rk4
 
-                do i=1,ni
-                        do j=1,nj
-                                cause=1
-                                if(x(i,j,1)<0) exit
-                                cause=2
-                                if(x(i,j,2)<0) exit
-                        enddo
-                enddo
-                cause=3
-                if(kw==1)       exit
-                cause=0
-
+        do i=1,ni
+            do j=1,nj
+                cause=1
+                if(x(i,j,1)<0) exit
+                cause=2
+                if(x(i,j,2)<0) exit
+            enddo
         enddo
-        !main loop end
-        call exitinfo(cause,it)
+        cause=3
+        if(kw==1)       exit
+        cause=0
 
-        close(15)
-        CALL system_clock(time_end,time_rate)
-        WRITE(*,*) 'time is: ',(time_end - time_begin)/time_rate
+    enddo
+    !main loop end
+    call exitinfo(cause,it)
+
+    close(15)
 end Program mhd2d
-
-!********************************************************************************
-Subroutine initial
-
-        use variable
-        implicit none
-        integer i,j
-        real*8 s,sii,sij
-        
-        va=dsqrt(b0*b0/rho0)
-        p0=0.5*beta*(b0*b0)
-        t0=0.5*beta*va*va
-        ta=bl/va
-        tau=numta*ta
-        tt0=numta1*ta
-        ttrmp=numta2*ta
-
-        x=0.0
-        
-        do i=1,ni
-                s=(i-(ni+1)/2)*dx/bl
-                psie(i)=-bl*log(cosh(s))
-                bye(i)=tanh(s)
-                pe(i)=-tanh(s*bl/pl)+1
-                bze(i)=sqrt(2*(1+.5*(bze0**2-bye(i)**2)-pe(i)))
-                jze(i)=(1-(tanh(s))**2)/bl
-                vxs(i)=0.
-                ! vys(i)=vy0*cos(0.25*pi*s*bl)
-                ! vys(i)=vy0*tanh(s*bl/lv)
-                vys(i)=vy0
-                ! vys(i)=vy0*(-1./(cosh(s*bl/lv))+1)
-                vzs(i)=0.
-                rhoe(i)=1.
-                do j=1,nj
-                        x(i,j,6)=psie(i)
-                        x(i,j,7)=bze(i)
-                        x(i,j,1)=rhoe(i)
-                        x(i,j,2)=pe(i)
-                        x(i,j,3)=vxs(i)
-                        x(i,j,4)=vys(i)
-                        x(i,j,5)=vzs(i)
-                enddo
-        enddo
-        
-
-        do i=1,ni
-                s=(i-(ni+1)/2)*dx/bl
-                sii=exp(-s*s)*am
-                do j=1,nj
-                        ! sij=sin(mm*2.*pi*(j-1)*dy/4.)
-                        sij=-cos(mm*pi*(j-1)*dy)+1
-                        ! sij=sin(0.75*(j-1)*dy*pi)
-                        ! sij=sin(mm*2.*pi*(j-1)*dy/4.)
-                        seed(i,j)=sij*sii
-                        x(i,j,6)=x(i,j,6)+seed(i,j)
-                        ! x(i,j,6)=0.+sij*sii
-                enddo
-        enddo
-end Subroutine initial
 
 !********************************************************************************
 Subroutine rk4                                ! 4-th Runge-Kutta time integration
