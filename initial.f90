@@ -5,10 +5,10 @@ Subroutine initial
     integer i,j
     real*8 s,sii,sij
     
-    va=dsqrt(b0*b0/rho0)
+    va=dsqrt(b0*b0/rho0)    ! mu0=1 or pi*4e-7
     p0=0.5*beta*(b0*b0)
     t0=0.5*beta*va*va
-    ta=bl/va
+    ta=bl/va                ! tau_a=L0/va
     tau=numta*ta
     tt0=numta1*ta
     ttrmp=numta2*ta
@@ -16,7 +16,7 @@ Subroutine initial
     x=0.0
     
     do i=1,ni
-        s=(i-(ni+1)/2)*dx/bl
+        s=(i-(ni+1)/2)*dx/bl            ! s=x/bl
         psie(i)=-bl*log(cosh(s))
         bye(i)=tanh(s)
         pe(i)=-tanh(s*bl/pl)+1

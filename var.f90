@@ -5,7 +5,7 @@ Module variable
     ! grid parameters
     integer, parameter :: ni=801                      ! nx, x grid number
     integer, parameter :: nj=201                      ! ny, y grid number
-    integer, parameter :: nt=2500                     ! steps
+    integer, parameter :: nt=2500000                  ! steps
     real*8, parameter :: dx=0.005, dy=0.02            ! deltax, deltay
     real*8 :: dt=0.002                                ! giving a dt < min(dx,dz)/[sqrt(1.0+0.5*gamma*beta)*va]
     real*8 :: dx2=0.5/dx, dy2=0.5/dy, ddx=1.0/(dx*dx), ddy=1.0/(dy*dy)
@@ -20,7 +20,7 @@ Module variable
     real*8, parameter :: rho0=1.0                     ! rho0 -- mass density rho0 in x=Lx
     real*8, parameter :: b0=1.0                       ! b0 -- B0
     real*8, parameter :: bze0=3.0                     ! bze0 
-    real*8, parameter :: bl=0.8                       ! bl -- width of current sheet
+    real*8, parameter :: bl=0.2                       ! bl -- width of current sheet
     real*8, parameter :: pl=0.6                       ! bl -- width of initial pressure
     real*8 :: va                                      ! Alfven velocity
     real*8 :: p0                                      ! p0 -- pressure p0 in x=Lx
@@ -30,7 +30,7 @@ Module variable
     
     ! other parameters
     ! output interval
-    integer, parameter :: nplot1=500, nplot2=500, nplot3=500 
+    integer, parameter :: nplot1=25000, nplot2=10000 
     real*8, parameter :: pi=3.14159265358979, small=1.0e-10, large=1.0e10
     real*8, parameter :: cfl=1.5                      ! CFL condition parameter
     real*8, parameter :: am=0.0001, mm=0.5            ! am -- prtb amplitude
@@ -58,11 +58,11 @@ Module variable
     real*8, parameter :: psip=0.1, pper=0., pp0=0.02, f0=0.
 
     !neoclassical current
-    real*8, parameter :: jbs=0.08
+    real*8, parameter :: jbs=0.00
 
     !shear flow
     real*8, dimension(ni) :: vxs, vys, vzs                                   
-    real*8, parameter :: vx0=0.0, vy0=0.07, vz0=0.0      
+    real*8, parameter :: vx0=0.0, vy0=0.01, vz0=0.0      
     real*8, parameter :: lv=0.8
 
     !rmp
@@ -70,9 +70,8 @@ Module variable
     real*8, parameter :: psiper=0.3                        
     real*8 :: phi=1.0*pi                               ! the phase diffrence
 
-
     !eccd
-    real*8, parameter :: eccdon=19500 
+    real*8, parameter :: eccdon=1.d8 
     real*8, parameter :: ejz=0.0, delta=0.6
     real*8 :: delta2=delta**2
 
