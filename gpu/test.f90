@@ -166,7 +166,7 @@ Subroutine calcbxy(xi)                          ! calculate Bx, Bz, need check!!
     real*8, dimension(ni,nj,7) :: xi     ! 1 2 3 4 5 6 7 --> rho p ux uy uz psi bz
     
     ! calculate Bx, By, need check!!!
-    !$omp parallel do private(i,j) 
+    !$acc kernels 
     do i=2,ni-1
         do j=1,nj
             jp1=j+1
@@ -177,7 +177,7 @@ Subroutine calcbxy(xi)                          ! calculate Bx, Bz, need check!!
             by(i,j)=-dx2*(xi(i+1,j,6)-xi(i-1,j,6))
         enddo
     enddo
-    !$omp end parallel do 
+    !$acc end kernels
 
     ! by boundary
     do j=1,nj
@@ -263,7 +263,7 @@ Subroutine calcj(xi)                          ! calculate Bx, Bz, need check!!!
             jx(i,j)=dy2*(xi(i,jp1,7)-xi(i,jm1,7))
         enddo
     enddo
-    !$omp parallel do private(i,j) 
+    !$acc kernels  
     do i=2,ni-1
         do j=1,nj
             jp1=j+1
@@ -279,7 +279,7 @@ Subroutine calcj(xi)                          ! calculate Bx, Bz, need check!!!
             jz(ni,j)=jz(ni-1,j)
         enddo
     enddo
-   !$omp end parallel do 
+   !$acc end kernels
 
     ! jmin=jz(xmax,(nj+1)/2)
     jmin=maxval(jz)
@@ -296,7 +296,7 @@ Subroutine calcjb(xi)
     integer i,j,k,jp1,jm1,ip1,im1
     real*8, dimension(ni,nj,7) :: xi     ! 1 2 3 4 5 6 7 --> rho p ux uy uz psi bz
 
-    !$omp parallel do private(i,j) 
+    !$acc kernels
     do j=1,nj
         do i=2,ni-1
             im1=i-1
@@ -306,7 +306,7 @@ Subroutine calcjb(xi)
         jb(1,j)=jb(2,j)
         jb(ni,j)=jb(ni-1,j)
     enddo
-   !$omp end parallel do 
+   !$acc end kernels 
 
 end Subroutine calcjb
 !********************************************************************************
@@ -318,13 +318,13 @@ Subroutine calcf(xi)
     real*8  numm(2)
     integer  psixmin,psiymin
 
-    !$omp parallel do private(i,j) 
+    !$acc kernels
     do j=1,nj
         do i=1,ni
             psi(i,j)=xi(i,j,6)
         end do 
     end do 
-    !$omp end parallel do 
+    !$acc end kernels 
     numm=minloc(psi)
     psixmin=numm(1)
     psiymin=numm(2)
@@ -391,7 +391,7 @@ Subroutine calcenergy(xi)                          ! calculate Bx, Bz, need chec
     em=0.
     ek=0.
     eh=0.
-    !$omp parallel do private(i,j) 
+    !$acc kernels
     do j=1,nj
         do i=1,ni
             em=em+.5*(bx(i,j)**2+by(i,j)**2+xi(i,j,7)**2)
@@ -400,7 +400,7 @@ Subroutine calcenergy(xi)                          ! calculate Bx, Bz, need chec
             et=em+ek+eh
         enddo
     enddo
-    !$omp end parallel do
+    !$acc end kernels
 end Subroutine calcenergy
 
 !********************************************************************************
@@ -613,29 +613,28 @@ Subroutine right(xo,xi)               ! for rk4, right hand side of mhd equation
     ! calculate Bx, By
     call calcbxy(xi)
 
-    !$omp parallel do private(i,j) 
+    !$acc kernels
     do i=1,ni
         do j=1,nj
             rrho(i,j)=1.0/xi(i,j,1)                                 ! rrho=1/rho
             pt(i,j)=xi(i,j,2)+0.5*(bx(i,j)**2+by(i,j)**2+xi(i,j,7)**2)           ! pt=p+b^2/2
         enddo
     enddo
-    !$omp end parallel do
+    !$acc end kernels
     
-    !$omp parallel do private(i,j) 
+    !$acc kernels
     do j=1,nj
         do i=1,ni
             psi(i,j)=xi(i,j,6)
         end do 
     end do 
-    !$omp end parallel do 
+    !$acc end kernels
     num4=maxloc(psi)
     x0=num4(1)
     y0=num4(2)
 
 
-    !$omp parallel private(i,j)
-    !$omp do
+    !$acc kernels
     do j=1,nj
         jp1=j+1
         jm1=j-1
@@ -707,8 +706,7 @@ Subroutine right(xo,xi)               ! for rk4, right hand side of mhd equation
                     -ddx*(bze(ip1)+bze(im1)-2.*bze(i)))             
         enddo
     enddo
-    !$omp end do  
-    !$omp end parallel 
+    !$acc end kernels
 
 end Subroutine right
 !********************************************************************************
@@ -743,7 +741,7 @@ Subroutine rk4                                ! 4-th Runge-Kutta time integratio
     enddo
     
     call right(f1,x)
-    !$omp parallel do private(i,j) 
+    !$acc kernels 
     do i=2,ni-1
         do j=1,nj       
             y(i,j,1)=x(i,j,1)+0.5*dt*f1(i,j,1)
@@ -764,10 +762,10 @@ Subroutine rk4                                ! 4-th Runge-Kutta time integratio
             ! WRITE(*,*) omp_get_thread_num()
         end do
     end do
-    !$omp end parallel do
+    !$acc end kernels
     call boundary(y)
 
-    !$omp parallel do private(i,j) 
+    !$acc kernels
     do i=1,ni
         do j=1,nj       
             y(i,j,1)=y(i,j,1)+rhoe(i)
@@ -779,13 +777,13 @@ Subroutine rk4                                ! 4-th Runge-Kutta time integratio
             y(i,j,7)=y(i,j,7)+bze(i)
         end do
     end do
-    !$omp end parallel do
+    !$acc end kernels
 
     call smooth(y)
 
     call right(f2,y)
 
-    !$omp parallel do private(i,j) 
+    !$acc kernels
     do i=2,ni-1
         do j=1,nj       
             y(i,j,1)=x(i,j,1)+0.5*dt*f2(i,j,1)
@@ -805,11 +803,11 @@ Subroutine rk4                                ! 4-th Runge-Kutta time integratio
             y(i,j,7)=y(i,j,7)-bze(i)
         end do
     end do
-    !$omp end parallel do
+    !$acc end kernels
 
     call boundary(y)
 
-    !$omp parallel do private(i,j) 
+    !$acc kernels
     do i=1,ni
         do j=1,nj       
             y(i,j,1)=y(i,j,1)+rhoe(i)
@@ -821,12 +819,12 @@ Subroutine rk4                                ! 4-th Runge-Kutta time integratio
             y(i,j,7)=y(i,j,7)+bze(i)
         end do
     end do
-    !$omp end parallel do
+    !$acc end kernels
     call smooth(y)
 
     call right(f3,y)
 
-    !$omp parallel do private(i,j) 
+    !$acc kernels
     do i=2,ni-1
         do j=1,nj       
             y(i,j,1)=x(i,j,1)+dt*f3(i,j,1)
@@ -846,11 +844,11 @@ Subroutine rk4                                ! 4-th Runge-Kutta time integratio
             y(i,j,7)=y(i,j,7)-bze(i)
         end do
     end do
-    !$omp end parallel do
+    !$acc end kernels
 
     call boundary(y)
 
-    !$omp parallel do private(i,j) 
+    !$acc kernels 
     do i=1,ni
         do j=1,nj       
             y(i,j,1)=y(i,j,1)+rhoe(i)
@@ -862,13 +860,13 @@ Subroutine rk4                                ! 4-th Runge-Kutta time integratio
             y(i,j,7)=y(i,j,7)+bze(i)
         end do
     end do
-    !$omp end parallel do
+    !$acc end kernels
 
     call smooth(y)
 
     call right(f4,y)
 
-    !$omp parallel do private(i,j)
+    !$acc kernels
     do i=2,ni-1
         do j=1,nj       
             x(i,j,1)=x(i,j,1)+dt*(f1(i,j,1)+2.*f2(i,j,1)+2.*f3(i,j,1)+f4(i,j,1))/6.
@@ -888,11 +886,11 @@ Subroutine rk4                                ! 4-th Runge-Kutta time integratio
             x(i,j,7)=x(i,j,7)-bze(i)
         end do
     end do
-    !$omp end parallel do
+    !$acc end kernels
 
     call boundary(x)
 
-    !$omp parallel do private(i,j) 
+    !$acc kernels
     do i=1,ni
         do j=1,nj       
             x(i,j,1)=x(i,j,1)+rhoe(i)
@@ -904,7 +902,7 @@ Subroutine rk4                                ! 4-th Runge-Kutta time integratio
             x(i,j,7)=x(i,j,7)+bze(i)
         end do
     end do
-    !$omp end parallel do 
+    !$acc end kernels
 
     call smooth(x)
     
@@ -932,7 +930,7 @@ SUBROUTINE smooth(xi)
     real*8  cf
     cf=0.99
     do K=1,5
-        !$omp parallel do private(i,j)
+        !$acc kernels
         do j=1,nj
         jp1=j+1
         if(j==nj) jp1=1
@@ -946,19 +944,19 @@ SUBROUTINE smooth(xi)
         w(ni,j)=xi(ni,j,k)+(1.-cf)*0.25*(xi(ni,j,k)+xi(ni-1,j,k)&
         +xi(ni,jm1,k)+xi(ni,jp1,k))
         end do        
-        !$omp end parallel do 
+        !$acc end kernels
 
-        !$omp parallel do private(i,j)
+        !$acc kernels
         DO  J=1,NJ
             DO  I=2,NI-1
             xi(I,J,K)=W(I,J)
             end do
         end do
-        !$omp end parallel do
+        !$acc end kernels
     END DO
 
     k=7
-    !$omp parallel do private(i,j)
+    !$acc kernels
     do j=1,nj
     jp1=j+1
     if(j==nj) jp1=1
@@ -972,7 +970,7 @@ SUBROUTINE smooth(xi)
         w(ni,j)=xi(ni,j,k)+(1.-cf)*0.25*(xi(ni,j,k)+xi(ni-1,j,k)&
         +xi(ni,jm1,k)+xi(ni,jp1,k))
     end do   
-    !$omp end parallel do 
+    !$acc end kernels 
 
     DO  J=1,NJ
         DO  I=2,NI-1
